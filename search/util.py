@@ -17,17 +17,10 @@ def valid_hex(r, q):
     return ((minimum_val <= r) and (maximum_val >= r))
 
 def calc_dist(r1, q1, r2, q2):
-    dist = 0
-
     if((not valid_hex(r1, q1)) or (not valid_hex(r2, q2))):
         return -1
-
-    if (r1 == r2):
-        return abs(q1 - q2)
-    if (q1 == q2):
-        return abs(r1 - r2)
-    if (r1+q1 == r2+q2):
-        return abs(r1 - r2)
+    
+    dist = max(max(abs(r1-r2), abs(q1-q2)), abs((r1+q1) - (r2+q2)))
 
     return dist
 
