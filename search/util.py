@@ -17,14 +17,22 @@ def valid_hex(r, q):
     return ((minimum_val <= r) and (maximum_val >= r))
 
 def calc_dist(r1, q1, r2, q2):
+    """
+    Returns distance between hexes (r1, q1) and (r2, q2)
+    """
+
     if((not valid_hex(r1, q1)) or (not valid_hex(r2, q2))):
         return -1
     
-    dist = max(max(abs(r1-r2), abs(q1-q2)), abs((r1+q1) - (r2+q2)))
+    dist = max(abs(r1-r2), abs(q1-q2), abs((r1+q1) - (r2+q2)))
 
     return dist
 
 def dist_board(r, q):
+    """
+    DEBUGGING FUNCTION
+    Outputs a dictionary of the form (r, q): distance from target hex.
+    """
     if (not valid_hex(r, q)):
         return -1
 
@@ -40,6 +48,7 @@ def dist_board(r, q):
 
 def parse_board(data):
     """
+    DEBUGGING FUNCTION
     Outputs a dictionary of the form (r, q): piece-code.
     """
     board_dict = {}
@@ -58,6 +67,8 @@ def parse_board(data):
         board_dict[(piece[1], piece[2])] = "#"
 
     return board_dict
+
+#----- vv FUNCTIONS THAT CAME WITH THE SKELETON CODE vv -----
 
 def print_slide(t, r_a, q_a, r_b, q_b, **kwargs):
     """
