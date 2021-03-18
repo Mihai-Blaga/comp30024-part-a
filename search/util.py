@@ -79,6 +79,10 @@ def recursive_dist_calc(r, q, curr_board, dist_dict, cost):
 
     return dist_dict
 
+def target_assign(board, piece):
+    
+    return 0
+
 
 def dist_board_block(r, q, curr_board_state):
     """
