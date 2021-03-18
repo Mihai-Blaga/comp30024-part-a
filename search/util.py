@@ -16,6 +16,25 @@ def valid_hex(r, q):
     maximum_val = min(4, 4-q)
     return ((minimum_val <= r) and (maximum_val >= r))
 
+def live_hex(r, q, target_piece, original_piece):
+    """
+    returns true if the piece will survive moving to the specified hex
+    """
+    #maps pieces from rock, paper, scissors or blank to a ordinal number for maths.
+    piece_map = {'r': 0, 'P': 1, 's': 2, 'R': 3, 'p': 4, 'S': 5, '': -2}
+
+    if (target_piece == '#' or not (valid_hex(r,q))):
+        return False
+
+    original_piece = piece_map[original_piece]
+    target_piece = piece_map[target_piece]
+
+    if (original_piece != -2 and target_piece != -2):
+        return not (((original_piece + 1) % 6) == target_piece or ((original_piece + 4) % 6) == target_piece)
+
+    return True
+        
+
 def calc_dist(r1, q1, r2, q2):
     """
     Returns distance between hexes (r1, q1) and (r2, q2)
@@ -45,6 +64,37 @@ def dist_board(r, q):
 
     return dist_dict
 
+def recursive_dist_calc(r, q, curr_board, dist_dict, cost):
+    if (not valid_hex(r, q) or not live_hex(r, q, curr_board[(r, q)], '')):
+        return dist_dict
+    
+    if (not ((r,q) in dist_dict) or dist_dict[(r,q)] > (cost + 1)):
+        dist_dict[(r,q)] = cost + 1
+        dist_dict = recursive_dist_calc(r+1, q, curr_board, dist_dict, cost+1)
+        dist_dict = recursive_dist_calc(r, q+1, curr_board, dist_dict, cost+1)
+        dist_dict = recursive_dist_calc(r+1, q-1, curr_board, dist_dict, cost+1)
+        dist_dict = recursive_dist_calc(r-1, q+1, curr_board, dist_dict, cost+1)
+        dist_dict = recursive_dist_calc(r-1, q, curr_board, dist_dict, cost+1)
+        dist_dict = recursive_dist_calc(r, q-1, curr_board, dist_dict, cost+1)
+
+    return dist_dict
+
+
+def dist_board_block(r, q, curr_board_state):
+    """
+    DEBUGGING FUNCTION
+    Outputs a disctionary of the form (r, q): distance from target hex, taking into account blockers.
+    """
+    dist_dict = {}
+
+    dist_dict = recursive_dist_calc(r, q, curr_board_state, dist_dict, -1)
+
+    for i in range(-4, 5):
+        for j in range(-4, 5):
+            if (valid_hex(i, j) and curr_board_state[(i,j)] == '#'):
+                dist_dict[(i, j)] = '#'
+
+    return dist_dict
 
 def parse_board(data):
     """
@@ -56,6 +106,11 @@ def parse_board(data):
     upper = data["upper"]
     lower = data["lower"]
     block = data["block"]
+
+    for i in range(-4, 5):
+        for j in range(-4, 5):
+            if (valid_hex(i, j)):
+                board_dict[(i, j)] = ''
 
     for piece in upper:
         board_dict[(piece[1], piece[2])] = piece[0].upper()

@@ -32,4 +32,4 @@ def main():
     board = parse_board(data)
 
     #print_board(board, compact=False, ansi=True)
-    print_board(dist_board(4,0), ansi=True)
+    print_board(dist_board_block(4,0, board), ansi=True)
