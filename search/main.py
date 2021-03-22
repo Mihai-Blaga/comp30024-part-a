@@ -31,5 +31,13 @@ def main():
 
     board = parse_board(data)
 
+    lower_pieces = parse_pieces(data,"lower")
+    upper_pieces = parse_pieces(data,"upper")
+
+    target_dist_dict = make_target_distances(lower_pieces,board)
+    routing = target_assign(upper_pieces,lower_pieces,target_dist_dict)
+
+    print(routing)
+    print_board(routing,compact=False)
     #print_board(board, compact=False, ansi=True)
     print_board(dist_board_block(4,0, board), ansi=True)

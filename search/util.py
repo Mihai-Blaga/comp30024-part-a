@@ -79,9 +79,150 @@ def recursive_dist_calc(r, q, curr_board, dist_dict, cost):
 
     return dist_dict
 
-def target_assign(board, piece):
+def parse_pieces(data,up_or_low):
+    """
+    Input data, and either "upper" or "lower" for the relevant team.
+    Returns pieces_list, which has three lists
+    pieces_list[0] is a list of rock pieces,
+    pieces_list[1] is a list of paper pieces,
+    pieces_list[2] is a list of scissors pieces.
+    eg pieces_list[2][0] = [(1,2),"s"]
+    """
+    pieces_list = []
+
+    pieces_list.append([])
+    pieces_list.append([])
+    pieces_list.append([])
+
+    pieces = data[up_or_low]
+    for piece in pieces:
+        if piece[0] == "r":
+            pieces_list[0].append([(piece[1],piece[2]),piece[0]])
+        elif piece[0] == "p":
+            pieces_list[1].append([(piece[1],piece[2]),piece[0]])
+        else:
+            pieces_list[2].append([(piece[1],piece[2]),piece[0]])
+
+    return pieces_list
+
+
+def make_target_distances(lower_pieces, curr_board_state):
+    """
+    Returns target_distance_dict.
+    The Keys for the dict are the coordinates of lower pieces
+    The value is the dist_dict from dist_board_dict
+    """
+
+    target_distance_dict = {}
+    for min_list in lower_pieces:
+        for piece in min_list:
+            target_distance_dict[piece[0]] = dist_board_block(piece[0][0], piece[0][1], curr_board_state)
+
+    return target_distance_dict
+
+
+def target_assign(upper_pieces, lower_pieces, target_distances):
+    """
+    Returns Target_dict. 
+    The Keys are starting coordinates of attacker peices
+    The Values are a list of target coordinates, to be attacked in order
+    Eg target_dict[(0,1)] = [(0,2),(1,2)]
     
-    return 0
+    This Function matches attacking pieces to their valid targets,
+    then combines three target_dicts into final output.
+    """
+
+    target_dict = {}
+    
+    rock_targets = target_assign_two(upper_pieces[0],lower_pieces[2],target_distances)
+    paper_targets = target_assign_two(upper_pieces[1],lower_pieces[0],target_distances)
+    scissors_targets = target_assign_two(upper_pieces[2],lower_pieces[1],target_distances)
+
+    target_dict.update(rock_targets)
+    target_dict.update(paper_targets)
+    target_dict.update(scissors_targets)
+
+    return target_dict
+
+
+def target_assign_two(attackers_list, targets_list, target_distances):
+    """
+    Returns targets in same format as target_dict.
+    Input is Attackers and their targets. EG Upper Scissors and Lower Paper
+    """
+    targets = {}
+
+    if len(attackers_list) == 0:
+        return targets
+
+    elif len(attackers_list) >= len(targets_list):
+        # LONGEST SHORTEST PATH
+        bloop = []
+        targets_left = [i for i in range(len(targets_list))]
+        attackers_left = [i for i in range(len(attackers_list))]
+        #Generate bloop
+        #bloop is a list of lists, where the bloop[i] is a list belonging to target i
+        #the values of the sub-list are the distances to target j. bloop[i][j]
+        for target in targets_left:
+            temp_list =[]
+            for attacker in attackers_left:
+                temp_list.append(target_distances[targets_list[target][0]][attackers_list[attacker][0]])
+            bloop.append(temp_list)
+
+
+        while len(targets_left) > 0:
+            #Set First target and first attacker as max_min
+            #Set min_target_row as the first row
+            #min_target_row is the row with the highest minimum value
+            max_min_target_dist = bloop[targets_left[0]][attackers_left[0]]
+            min_target_row = targets_left[0]
+
+            # Find the max_min value, and the row that it is in
+            for row in targets_left:
+                row_min = bloop[row][attackers_left[0]]
+                for attacker in attackers_left:
+                    if bloop[row][attacker] < row_min:
+                        row_min = bloop[row][attacker]
+                if row_min > max_min_target_dist:
+                    max_min_target_dist = row_min
+                    min_target_row = row
+
+            # Get the attacker num from the first position of max_min in bloop[row]
+            for attacker in attackers_left:
+                if bloop[min_target_row][attacker] == max_min_target_dist:
+                    attacker_num = attacker
+                    break
+            
+            # Add to output
+            targets[attackers_list[attacker_num][0]] = [targets_list[row][0]]
+
+            #Remove target and Attacker from remaining list
+            targets_left.remove(row)
+            attackers_left.remove(attacker_num)
+
+        # All targets should now have an attacker
+        
+        #Assign remaining attackers to closest target
+        # Optional, can be changed later
+        while len(attackers_left) > 0:
+            min_dist = bloop[0][attackers_left[0]]
+            min_target = 0
+            for i_target in range(len(targets_list)):
+                if bloop[i_target][attackers_left[0]] < min_dist:
+                    min_dist = bloop[i_target][attackers_left[0]]
+                    min_target = i_target
+
+            targets[attackers_list[attackers_left[0]][0]] = [targets_list[min_target][0]]
+            del attackers_left[0]
+        
+        return targets
+
+
+    else:
+        #More Targets than Attackers
+        #TO DO
+
+        return targets
 
 
 def dist_board_block(r, q, curr_board_state):
