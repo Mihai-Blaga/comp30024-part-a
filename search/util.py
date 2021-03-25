@@ -5,6 +5,250 @@ Project Part A: Searching
 This module contains some helper functions for printing actions and boards.
 Feel free to use and/or modify them to help you develop your program.
 """
+import copy
+
+next_id = 1
+
+def compare_states(s1):
+    """
+    Function used as the comparator in the unvisited_nodes queue.
+    Order by number of pieces (smaller is better), 
+    tie-breaking on scores (smaller is better), 
+    tie-breaking on depth (deeper is better)
+    """
+    return (len((s1[1])["lower"]), s1[3], -s1[4])
+    if (len((s1[1])["lower"]) == len((s2[1])["lower"])):
+        #Tie-breaking on scores (smaller is better)
+        if (s1[3] == s2[3]):
+            #Tie-breaking on depth (deeper is better)
+            return (s2[4] - s1[4])
+        return (s1[3] - s2[3])
+    return (len((s1[1])["lower"]) - len((s2[1])["lower"]))
+
+def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
+    """
+    Main body of the program. Finds a path to a finished state given targetting dictionary.
+    """
+    unvisited_nodes.sort(key = compare_states)
+    node = unvisited_nodes.pop(0)
+    #print(node)
+    curr_id = node[0]
+    state = copy.deepcopy(node[1])
+    curr_cost = node[3] - sum_dist_to_targets(state, targets, target_dists)
+    depth = node[4]
+
+    visited_nodes[curr_id] = node
+
+    #print("state_id: %d\n"% curr_id)
+    #print(state["lower"])
+    #print_board(parse_board(visited_nodes[curr_id][1]))
+
+    if (finished(state)):
+        print_all_nodes(curr_id, visited_nodes)
+        return
+
+    moves = potential_moves(state, targets, target_dists)
+
+    for move in moves:
+        global next_id
+        pot_score = score(move, targets, curr_cost, target_dists)
+        unvisited_nodes.append((next_id, move, curr_id, pot_score, depth+1))
+        next_id = next_id + 1
+
+    #print("visited")
+
+    return find_solution(unvisited_nodes, visited_nodes, targets, target_dists)
+
+def finished(state):
+    """
+    For a given board state, confirms it is in an accepted "finished" state based on absence of any lower pieces.
+    """
+    return (len(state["lower"]) == 0)
+
+def print_all_nodes(curr_id, visited_nodes):
+    """
+    Recursive function that prints all moves leading up to a given position.
+    """
+    if (curr_id == 0):
+        return 1
+    else:
+        parent_id = visited_nodes[curr_id][2]
+        depth = print_all_nodes(parent_id, visited_nodes) #prints all moves leading to this position.
+        
+        print("state_id: %d\n"% curr_id)
+        print_board(parse_board(visited_nodes[curr_id][1]))
+
+        print_moves(visited_nodes[parent_id][1], visited_nodes[curr_id][1], depth)
+        return depth + 1
+
+def print_moves(prev, curr, depth):
+    """
+    Given two board states, find differences between them and figure out the moves
+    """
+    old_locations = prev["upper"]
+    new_locations = curr["upper"]
+    for i in range(0, len(old_locations)):
+        old_spot = old_locations[i]
+        new_spot = new_locations[i]
+        
+        if (calc_dist(old_spot[1], old_spot[2], new_spot[1], new_spot[2]) == 1):
+            print_slide(depth, old_spot[0], old_spot[1], new_spot[0], new_spot[1])
+
+        elif(calc_dist(old_spot[1], old_spot[2], new_spot[1], new_spot[2]) > 1):
+            print_swing(depth, old_spot[0], old_spot[1], new_spot[0], new_spot[1])
+
+    return
+
+def potential_moves(state, targets, target_dists):
+    """
+    Returns list of all potential move states that are better than the current.
+    """
+    pieces = state["upper"]
+    adj_positions = adj_loc(state)
+    moves = []
+    using_loc = {}
+
+    #moving the first piece in upper
+    for loc in adj_positions[0]:
+        using_loc[0] = loc
+        old_loc = (pieces[0][1], pieces[0][2])
+        dist_board = target_dists[targets[0][0]]
+        old_dist = dist_board[old_loc]
+        new_dist = dist_board[loc]
+        
+        #comparing to the old distance, only taking distances <=
+        if (new_dist <= old_dist):
+            move = state.copy()
+            (move["upper"])[0][1] = loc[0]
+            (move["upper"])[0][2] = loc[1]
+                    
+            if (new_dist == 0):
+                move["lower"] = [p for p in move["lower"] if (p[1] != loc[0] or p[2] != loc[1])]
+
+            #moving second piece in upper
+            if (len(adj_positions) > 1):
+                for loc_1 in adj_positions[1]:
+                    if (loc_1 != using_loc[0]):
+                        using_loc[1] = loc_1
+                        old_loc = (pieces[1][1], pieces[1][2])
+                        dist_board = target_dists[targets[1][0]]
+                        old_dist = dist_board[old_loc]
+                        new_dist = dist_board[loc]
+
+                        #comparing to the old distance, only taking distances <=
+                        if(new_dist <= old_dist):
+                            move = move.copy()
+                            (move["upper"])[1][1] = loc_1[0]
+                            (move["upper"])[1][2] = loc_1[1]
+
+                            if (new_dist == 0):
+                                move["lower"] = [p for p in move["lower"] if (p[1] != loc_1[0] or p[2] != loc_1[1])]
+
+                            #moving third piece in upper
+                            if (len(adj_positions) > 2):
+                                for loc_2 in adj_positions[2]:
+                                    if (loc_2 != using_loc[0] and loc_2 != using_loc[1]):
+                                        old_loc = (pieces[2][1], pieces[2][2])
+                                        dist_board = target_dists[targets[2][0]]
+                                        old_dist = dist_board[old_loc]
+                                        new_dist = dist_board[loc]
+
+                                        #comparing to the old distance, only taking distances <=
+                                        if (new_dist <= old_dist):
+                                            move = move.copy()
+                                            (move["upper"])[2][1] = loc_2[0]
+                                            (move["upper"])[2][2] = loc_2[1]
+                                            moves.append(move)
+
+                                            if (new_dist == 0):
+                                                move["lower"] = [p for p in move["lower"] if (p[1] != loc_2[0] or p[2] != loc_2[1])]
+                            else:
+                                moves.append(move)                  
+            else:
+                moves.append(move)
+    
+    return moves
+
+def adj_loc(state):
+    """
+    Returns list of all potential moves for each moveable piece.
+    """
+    pieces = state["upper"]
+    moves = {}
+    for i in range(0, len(pieces)):
+        hex_moves = []
+        for j in range(0, len(pieces)):
+            if (i != j and (calc_dist(pieces[i][1], pieces[i][2], pieces[j][1], pieces[j][2]) == 1)):
+                swing_moves = adj_hex(pieces[j][1], pieces[j[2]])
+                hex_moves = hex_moves + swing_moves
+        hex_moves = hex_moves + adj_hex(pieces[i][1], pieces[i][2])
+        hex_moves.append((pieces[i][1], pieces[i][2]))
+        hex_moves = list(set(hex_moves)) #remove duplicates
+        moves[i] = hex_moves
+
+    return moves
+
+
+def adj_hex(r1, q1):
+    """
+    Returns list of all adjacent hexes to target hex
+    """
+    hexes = []
+    if (valid_hex(r1 - 1, q1)):
+        hexes.append((r1 - 1, q1))
+    if (valid_hex(r1 + 1, q1)):
+        hexes.append((r1 + 1, q1))
+    if (valid_hex(r1, q1 - 1)):
+        hexes.append((r1, q1 - 1))
+    if (valid_hex(r1, q1 + 1)):
+        hexes.append((r1, q1 + 1))
+    if (valid_hex(r1 - 1, q1 + 1)):
+        hexes.append((r1 - 1, q1 + 1))
+    if (valid_hex(r1 + 1, q1 - 1)):
+        hexes.append((r1 + 1, q1 - 1))
+
+    return hexes
+    
+
+def score(move, targets, prev_cost, target_dists):
+    """
+    Calculates the score of the current board state.
+    """
+    score = prev_cost
+    sum = sum_dist_to_targets(move, targets, target_dists)
+
+    return score + sum
+
+def sum_dist_to_targets(state, targets, target_dists):
+    """
+    Calculates the sum of distances from pieces to their target locations
+    """
+    pieces = state["upper"]
+    sum = 0
+    
+    for i in range(0, len(pieces)):
+        dist_board = target_dists[targets[i][0]]
+        piece_location = (pieces[i][1], pieces[i][2])
+        sum = sum + dist_board[piece_location]
+    
+    return sum
+
+def convert_targets(state, targets):
+    """
+    Converts from target dictionary of form dict[piece_location] = [target_location_list]
+    to dict[piece_number_in_state_definition] = [target_location_list]
+    Useful because the piece_location is constantly changing.
+    """
+    converted = {}
+    i = 0
+
+    for piece in state["upper"]:
+        converted[i] = targets[(piece[1], piece[2])]
+        i = i + 1
+    
+    return converted
+
+
 def valid_hex(r, q):
     """
     For any hexagon (r,q) returns True if it would 
@@ -33,7 +277,6 @@ def live_hex(r, q, target_piece, original_piece):
         return not (((original_piece + 1) % 6) == target_piece or ((original_piece + 4) % 6) == target_piece)
 
     return True
-        
 
 def calc_dist(r1, q1, r2, q2):
     """
