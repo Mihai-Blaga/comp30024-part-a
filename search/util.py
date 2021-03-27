@@ -8,6 +8,7 @@ Feel free to use and/or modify them to help you develop your program.
 import copy
 
 next_id = 1
+MAX_INT = 99999
 
 def compare_states(s1):
     """
@@ -495,16 +496,17 @@ def target_assign_two(attackers_list, targets_list, target_distances):
 def dist_board_block(r, q, curr_board_state):
     """
     DEBUGGING FUNCTION
-    Outputs a disctionary of the form (r, q): distance from target hex, taking into account blockers.
+    Outputs a dictionary of the form (r, q): distance from target hex, taking into account blockers.
     """
     dist_dict = {}
+    global MAX_INT
 
     dist_dict = recursive_dist_calc(r, q, curr_board_state, dist_dict, -1)
 
     for i in range(-4, 5):
         for j in range(-4, 5):
             if (valid_hex(i, j) and curr_board_state[(i,j)] == '#'):
-                dist_dict[(i, j)] = '#'
+                dist_dict[(i, j)] = MAX_INT
 
     return dist_dict
 
