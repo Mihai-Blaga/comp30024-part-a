@@ -61,6 +61,16 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
 
     state["lower"] = new_lower
 
+    #checking if reached attack
+    """
+    for piece in targets.keys():
+        if ((state["upper"][piece][1],state["upper"][piece][2]) == targets[piece][0]):
+            if (len(targets[piece]) > 1):
+                targets[piece] = targets[piece][1:]
+            else:
+                targets[piece] = []  
+    """
+
     if (finished(state)):
         print_all_nodes(curr_id, visited_nodes)
         return
