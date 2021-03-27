@@ -43,6 +43,9 @@ def main():
     #print_board(routing,compact=False)
     #print_board(board, compact=True, ansi=True)
 
+    board = parse_board(data)
+    print_board(board)
+
     calculated_nodes = {}
     node_queue = [(0, data, -1, -1, 0)] #queues of nodes in form of (node_id, board_state, parent_node_id, score, depth). 
 
