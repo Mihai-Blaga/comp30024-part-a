@@ -61,19 +61,28 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
 
     state["lower"] = new_lower
 
+    
+    if (finished(state)):
+        print_all_nodes(curr_id, visited_nodes)
+        return
+
     #checking if reached attack
-    """
+    
     for piece in targets.keys():
         if ((state["upper"][piece][1],state["upper"][piece][2]) == targets[piece][0]):
             if (len(targets[piece]) > 1):
                 targets[piece] = targets[piece][1:]
             else:
-                targets[piece] = []  
-    """
+                lower_pieces = parse_pieces(state,"lower")
+                upper_pieces = parse_pieces(state,"upper")
+        
+                board = parse_board(state)
+                target_dist_dict = make_target_distances(lower_pieces,board)
 
-    if (finished(state)):
-        print_all_nodes(curr_id, visited_nodes)
-        return
+                routing = target_assign(upper_pieces,lower_pieces,target_dists)
+                targets = convert_targets(state, routing)  
+    
+
 
     moves = potential_moves(state, targets, target_dists)
 
@@ -141,17 +150,6 @@ def potential_moves(state, targets, target_dists):
     for piece in state["lower"]:
         lower_pos[(piece[1], piece[2])] = piece[0]
 
-    #making sure every piece has a target
-    need_new_targets = False
-    for key in targets:
-        if (targets[key] == []):
-            need_new_targets = True
-
-    if need_new_targets:
-        target_dists = []
-        target_dist = make_target_distances(state["lower"],parse_board(state))
-        routing = target_assign(state["upper"],state["lower"],target_dist)
-        targets = convert_targets(state, routing)
 
     #simplifying adj_positions into only positions >= curr and moves that won't kill the pieces.
     for key in adj_positions.keys():
@@ -261,7 +259,6 @@ def sum_dist_to_targets(state, targets, target_dists):
     """
     pieces = state["upper"]
     sum = 0
-    
     for i in range(0, len(pieces)):
         dist_board = target_dists[targets[i][0]]
         piece_location = (pieces[i][1], pieces[i][2])
@@ -277,6 +274,8 @@ def convert_targets(state, targets):
     """
     converted = {}
     i = 0
+    print(targets)
+    print(state["upper"])
 
     for piece in state["upper"]:
         converted[i] = targets[(piece[1], piece[2])]
