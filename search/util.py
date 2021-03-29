@@ -6,6 +6,7 @@ This module contains some helper functions for printing actions and boards.
 Feel free to use and/or modify them to help you develop your program.
 """
 import copy
+from itertools import combinations
 
 next_id = 1
 MAX_INT = 99999
@@ -426,6 +427,7 @@ def target_assign_two(attackers_list, targets_list, target_distances):
     """
     Returns targets in same format as target_dict.
     Input is Attackers and their targets. EG Upper Scissors and Lower Paper
+    Assumes Targets >=1
     """
     targets = {}
 
@@ -497,9 +499,154 @@ def target_assign_two(attackers_list, targets_list, target_distances):
 
     else:
         #More Targets than Attackers
-        #TO DO
+
+        #Dictionary Of Dictionaries of Route Lengths
+        attacker_route_length = {}
+
+        #Removes types from targets_list
+        target_simple = simplify_targets(targets_list)
+
+
+        #target_lists is a list containing all combinations of targets as tuples(?)
+        target_lists = []
+        for i in range (1,len(target_simple)+1):
+            x = combinations(target_simple,i)
+            for n in x:
+                target_lists.append(n)
+
+        #For Each Attacker, find the "shortest" path length for each combination of targets
+        for attacker in attackers_list:
+            attacker_route_length[attacker[0]] = {}
+            for bloop in target_lists:
+                a = make_attacker_route_length(attacker[0],bloop, target_distances)
+                attacker_route_length[attacker[0]][bloop] = a
+
+
+        #Make list of all attacker_route combinations
+        all_valid_combs = make_valid_combinations(target_simple, len(attackers_list))
+
+        #Assume the First Combination is the shortest
+        shortest_comb = all_valid_combs[0]
+        shortest_longest_len = 0
+        for i in range(len(attackers_list)):
+            dist = sum_len(attackers_list[i][0],all_valid_combs[0][i],target_distances)
+            if dist > shortest_longest_len:
+                shortest_longest_len = dist
+        print(shortest_longest_len)
+
+        #Test The rest of the combinations to find the(a) actual shortest
+        for comb in all_valid_combs:
+            longest_len = 0
+            for i in range(len(attackers_list)):
+                dist = sum_len(attackers_list[i][0],comb[i],target_distances)
+                if dist > longest_len:
+                    longest_len = dist
+            
+            if longest_len < shortest_longest_len:
+                print("SUCCESS")
+                shortest_longest_len = longest_len
+                shortest_comb = comb
+                print(shortest_longest_len)
+                print(shortest_comb)
+        
+        for i in range(len(attackers_list)):
+            targets[attackers_list[i][0]] = list(shortest_comb[i])
 
         return targets
+
+
+def simplify_targets(target_list):
+    """
+    Removes type from target_list
+    """
+    output = []
+    for target in target_list:
+        output.append(target[0])
+    return output
+
+
+def make_valid_combinations(target_coordinates, num_attackers_left):
+    """
+    This function returns all possible ways the targets can be sorted to the number of attackers
+    Should return (attackers)^targets combinations
+    EG target 1 can go to attacker 1, 2, or 3
+    Target 2 can go to attacker 1, 2, or 3 ...
+
+
+    Returns a list of lists.
+    The sublists contains tuples
+    The tuples contain combinations of targets
+
+    """
+    if num_attackers_left == 1:
+        output3 = tuple(target_coordinates)
+        output2 = [output3]
+        output = [output2]
+        return output
+    
+    else:
+        output = []
+        for i in range(len(target_coordinates) + 1):
+            x = combinations(target_coordinates,i)
+            for n in x:
+                new = target_coordinates.copy()
+                for m in n:
+                    new.remove(m)
+                ob = make_valid_combinations(new, num_attackers_left-1)
+                for thing in ob:
+                    thing2 = thing.copy()
+                    thing2.append(n)
+                    output.append(thing2)
+        return output
+ 
+
+
+def make_attacker_route_length(attacker_coords, targets_list, target_distances):
+    """
+    Takes a list of targets and an attacker
+    returns "shortest" path from starting point
+
+    Inserts targets one at a time to minimise route length
+
+    """
+    if len(targets_list) > 1:
+        attack_order = make_attacker_route_length(attacker_coords, targets_list[1:], target_distances)[0]
+        
+        dist_list =[]
+        for i in range(len(attack_order)+1):
+            
+            attack_list = attack_order.copy()
+            attack_list.insert(i,targets_list[0])
+            dist_list.append(sum_len(attacker_coords,attack_list,target_distances))
+        smallest = min(dist_list)
+        for i in range(len(dist_list)):
+            if dist_list[i] == smallest:
+                output = [attack_list]
+                output.append(smallest)
+                # I can't remember why output has the smallest in it
+                return output
+
+    else:
+        #Base Case, return target
+        attack_order = [targets_list[0]]
+        output = [attack_order]
+        b = target_distances[targets_list[0]][attacker_coords]
+        output.append(b)
+        return output
+    
+def sum_len(attacker_coords, attack_list, target_distances):
+    big_list = list(attack_list)
+    big_list.insert(0,attacker_coords)
+    total = 0
+
+
+
+
+    for i in range(1,len(big_list)):
+       
+        total = total + target_distances[big_list[i]][big_list[i-1]]
+    return total
+
 
 
 def dist_board_block(r, q, curr_board_state):
