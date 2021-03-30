@@ -499,6 +499,8 @@ def target_assign_two(attackers_list, targets_list, target_distances):
         #Using shortest comb, add to targets
         for i in range(len(attackers_list)):
             if len(shortest_comb[i]) > 0:
+                #print(shortest_comb[i])
+                #print(attacker_route_length[attackers_list[i][0]][shortest_comb[i]])
                 targets[attackers_list[i][0]] = attacker_route_length[attackers_list[i][0]][shortest_comb[i]][0]
                 #targets[attackers_list[i][0]] = list(shortest_comb[i])
             else:
@@ -578,12 +580,13 @@ def make_attacker_route_length(attacker_coords, targets_list, target_distances):
             attack_list.insert(i,targets_list[0])
             dist_list.append(sum_len(attacker_coords,attack_list,target_distances))
         smallest = min(dist_list)
-        for i in range(len(dist_list)):
-            if dist_list[i] == smallest:
-                output = [attack_list]
-                output.append(smallest)
-                # I can't remember why output has the smallest in it
-                return output
+        i=dist_list.index(smallest)
+        output1 = attack_order.copy()
+        output1.insert(i,targets_list[0])
+        output = [output1]
+        output.append(smallest)
+        # I can't remember why output has the smallest in it
+        return output
 
     else:
         #Base Case, return target
@@ -597,9 +600,6 @@ def sum_len(attacker_coords, attack_list, target_distances):
     big_list = list(attack_list)
     big_list.insert(0,attacker_coords)
     total = 0
-
-
-
 
     for i in range(1,len(big_list)):
        
