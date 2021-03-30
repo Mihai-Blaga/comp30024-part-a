@@ -38,7 +38,7 @@ def main():
     routing = target_assign(upper_pieces,lower_pieces,target_dist_dict)
     routing_new = convert_targets(data, routing)
 
-    #print(routing_new)
+    print(routing_new)
     #print(routing_new[1][0])
     #print_board(routing,compact=False)
     #print_board(board, compact=True, ansi=True)

@@ -19,13 +19,6 @@ def compare_states(s1):
     tie-breaking on depth (deeper is better)
     """
     return (len((s1[1])["lower"]), s1[3], -s1[4])
-    if (len((s1[1])["lower"]) == len((s2[1])["lower"])):
-        #Tie-breaking on scores (smaller is better)
-        if (s1[3] == s2[3]):
-            #Tie-breaking on depth (deeper is better)
-            return (s2[4] - s1[4])
-        return (s1[3] - s2[3])
-    return (len((s1[1])["lower"]) - len((s2[1])["lower"]))
 
 def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
     """
@@ -74,6 +67,8 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
             if (len(targets[piece]) > 1):
                 targets[piece] = targets[piece][1:]
             else:
+                targets[piece] = []
+                """
                 lower_pieces = parse_pieces(state,"lower")
                 upper_pieces = parse_pieces(state,"upper")
         
@@ -82,7 +77,7 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
 
                 routing = target_assign(upper_pieces,lower_pieces,target_dists)
                 targets = convert_targets(state, routing)  
-    
+                """
 
 
     moves = potential_moves(state, targets, target_dists)
