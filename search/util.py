@@ -67,8 +67,7 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
                 upper_pieces = parse_pieces(state,"upper")
         
                 board = parse_board(state)
-                #target_dist_dict = make_target_distances(lower_pieces,board)
-
+                
                 routing = target_assign(upper_pieces,lower_pieces,target_dists, board)
                 targets = convert_targets(state, routing)  
 
@@ -99,6 +98,9 @@ def print_all_nodes(curr_id, visited_nodes):
     else:
         parent_id = visited_nodes[curr_id][2]
         depth = print_all_nodes(parent_id, visited_nodes) #prints all moves leading to this position.
+
+        print("state_id: %d\n"% curr_id)
+        print_board(parse_board(visited_nodes[curr_id][1]))
 
         print_moves(visited_nodes[parent_id][1], visited_nodes[curr_id][1], depth)
         return depth + 1
@@ -201,8 +203,9 @@ def adj_loc(state):
                 hex_moves = hex_moves + swing_moves
 
         hex_moves = hex_moves + adj_hex(pieces[i][1], pieces[i][2])
-        hex_moves.append((pieces[i][1], pieces[i][2]))
+        #hex_moves.append((pieces[i][1], pieces[i][2])) #pieces can't stay stationary
         hex_moves = list(set(hex_moves)) #remove duplicates
+        hex_moves = [x for x in hex_moves if x != (pieces[i][1], pieces[i][2])] #removing stationary moves
 
         moves[i] = hex_moves
 

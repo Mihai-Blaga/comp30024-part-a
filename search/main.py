@@ -13,6 +13,7 @@ import json
 # inside the `search` directory (like this one and `util.py`) and
 # then import from them like this:
 from search.util import *
+import time
 
 def main():
     try:
@@ -28,7 +29,18 @@ def main():
     # Why not start by trying to print this configuration out using the
     # `print_board` helper function? (See the `util.py` source code for
     # usage information).
+    """
+    board = parse_board(data)
+    out = dist_board_block(-2, 3, board)
 
+    for key in out.keys():
+        if out[key] > 100:
+            out[key] = "#"
+
+    print_board(out)
+    
+    """
+    start_time = time.time()
     board = parse_board(data)
 
     lower_pieces = parse_pieces(data,"lower")
@@ -38,12 +50,16 @@ def main():
     routing = target_assign(upper_pieces,lower_pieces,target_dist_dict, board)
     routing_new = convert_targets(data, routing)
 
-    print(routing_new)
-
-    board = parse_board(data)
-    print_board(board)
-
     calculated_nodes = {}
     node_queue = [(0, data, -1, -1, 0)] #queues of nodes in form of (node_id, board_state, parent_node_id, score, depth). 
 
+    finished_planning = time.time()
+
     find_solution(node_queue, calculated_nodes, routing_new, target_dist_dict)
+
+    finished = time.time()
+
+    print()
+    print("total time taken: ", round(finished - start_time, 4))
+    print("time spent planning: ", round(finished_planning - start_time, 4))
+    print("time spent moving through tree, ", round(finished - finished_planning, 4))
