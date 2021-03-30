@@ -8,6 +8,7 @@ Feel free to use and/or modify them to help you develop your program.
 import copy
 from itertools import combinations
 from itertools import permutations
+import random
 
 next_id = 1
 MAX_INT = 99999
@@ -68,7 +69,7 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
                 board = parse_board(state)
                 #target_dist_dict = make_target_distances(lower_pieces,board)
 
-                routing = target_assign(upper_pieces,lower_pieces,target_dists)
+                routing = target_assign(upper_pieces,lower_pieces,target_dists, board)
                 targets = convert_targets(state, routing)  
 
 
@@ -381,7 +382,7 @@ def make_target_distances(curr_board_state):
     return target_distance_dict
 
 
-def target_assign(upper_pieces, lower_pieces, target_distances):
+def target_assign(upper_pieces, lower_pieces, target_distances, board_in):
     """
     Returns Target_dict. 
     The Keys are starting coordinates of attacker peices
@@ -394,9 +395,9 @@ def target_assign(upper_pieces, lower_pieces, target_distances):
 
     target_dict = {}
     
-    rock_targets = target_assign_two(upper_pieces[0],lower_pieces[2],target_distances)
-    paper_targets = target_assign_two(upper_pieces[1],lower_pieces[0],target_distances)
-    scissors_targets = target_assign_two(upper_pieces[2],lower_pieces[1],target_distances)
+    rock_targets = target_assign_two(upper_pieces[0],lower_pieces[2],target_distances, board_in)
+    paper_targets = target_assign_two(upper_pieces[1],lower_pieces[0],target_distances, board_in)
+    scissors_targets = target_assign_two(upper_pieces[2],lower_pieces[1],target_distances, board_in)
 
     target_dict.update(rock_targets)
     target_dict.update(paper_targets)
@@ -405,7 +406,7 @@ def target_assign(upper_pieces, lower_pieces, target_distances):
     return target_dict
 
 
-def target_assign_two(attackers_list, targets_list, target_distances):
+def target_assign_two(attackers_list, targets_list, target_distances, board_in):
     """
     Returns targets in same format as target_dict.
     Input is Attackers and their targets. EG Upper Scissors and Lower Paper
@@ -417,9 +418,16 @@ def target_assign_two(attackers_list, targets_list, target_distances):
         return targets
     
     elif len(targets_list) == 0:
-        #If no targets, target the same location ???
+        #If no targets, move to nearby valid hex without dying. 
         for attacker in attackers_list:
-            targets[attacker[0]] = [attacker[0]]
+            current_r = attacker[0][0]
+            current_q = attacker[0][1]
+            for i_r in range(-1,2):
+                for i_q in range(-1,2):
+                    if (i_r != 0) or (i_q != 0):
+                        if valid_hex(current_r + i_r, current_q + i_q):
+                            if live_hex(current_r + i_r, current_q + i_q, board_in[(current_r+i_r,current_q+i_q)], attacker[1]):
+                                targets[attacker[0]] = [(current_r + i_r, current_q + i_q)]
         return targets
     
 
@@ -445,12 +453,16 @@ def target_assign_two(attackers_list, targets_list, target_distances):
             attacker_route_length[attacker[0]] = {}
             attacker_route_length[attacker[0]][()] = [(),0]
             for bloop in target_lists:
-                perms = permutations(bloop)
+                perms = list(permutations(bloop))
+                perm_i = 0
+                num_perms = len(perms)
                 best = make_attacker_route_length(attacker[0],bloop, target_distances)
-                for perm in perms:
-                    temp = make_attacker_route_length(attacker[0], perm, target_distances)
+                while (perm_i < 50) and (perm_i < num_perms):
+                    random_i = random.randint(0,num_perms-1)
+                    temp = make_attacker_route_length(attacker[0], perms[random_i], target_distances)
                     if temp[1] < best[1]:
                         best = temp
+                    perm_i = perm_i + 1
 
                 attacker_route_length[attacker[0]][bloop] = best
 
