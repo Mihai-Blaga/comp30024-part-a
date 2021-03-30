@@ -134,7 +134,6 @@ def print_moves(prev, curr, depth):
 
     return
 
-#likely has several errors within this.
 def potential_moves(state, targets, target_dists):
     """
     Returns list of all potential move states that are better than the current. [pot_board_states]
@@ -154,6 +153,7 @@ def potential_moves(state, targets, target_dists):
     for key in adj_positions.keys():
         new_list = []
         old_loc = (pieces[key][1], pieces[key][2])
+
         dist_board = target_dists[targets[key][0]]
         old_dist = dist_board[old_loc]
         
@@ -273,8 +273,8 @@ def convert_targets(state, targets):
     """
     converted = {}
     i = 0
-    print(targets)
-    print(state["upper"])
+    #print(targets)
+    #print(state["upper"])
 
     for piece in state["upper"]:
         converted[i] = targets[(piece[1], piece[2])]
@@ -382,17 +382,16 @@ def parse_pieces(data,up_or_low):
     return pieces_list
 
 
-def make_target_distances(lower_pieces, curr_board_state):
+def make_target_distances(curr_board_state):
     """
     Returns target_distance_dict.
-    The Keys for the dict are the coordinates of lower pieces
+    The Keys for the dict are the target coordinate
     The value is the dist_dict from dist_board_dict
     """
-
     target_distance_dict = {}
-    for min_list in lower_pieces:
-        for piece in min_list:
-            target_distance_dict[piece[0]] = dist_board_block(piece[0][0], piece[0][1], curr_board_state)
+    for i in range(-4, 5):
+        for j in range(-4, 5):
+            target_distance_dict[(i, j)] = dist_board_block(i, j, curr_board_state)
     return target_distance_dict
 
 

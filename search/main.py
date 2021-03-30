@@ -34,7 +34,7 @@ def main():
     lower_pieces = parse_pieces(data,"lower")
     upper_pieces = parse_pieces(data,"upper")
 
-    target_dist_dict = make_target_distances(lower_pieces,board)
+    target_dist_dict = make_target_distances(board)
     routing = target_assign(upper_pieces,lower_pieces,target_dist_dict)
     routing_new = convert_targets(data, routing)
 
