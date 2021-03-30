@@ -7,6 +7,7 @@ Feel free to use and/or modify them to help you develop your program.
 """
 import copy
 from itertools import combinations
+from itertools import permutations
 
 next_id = 1
 MAX_INT = 99999
@@ -67,17 +68,19 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
             if (len(targets[piece]) > 1):
                 targets[piece] = targets[piece][1:]
             else:
-                targets[piece] = []
-                """
+                #No retargeting BAD
+                #targets[piece] = []
+
+                #Retargetting
+                
                 lower_pieces = parse_pieces(state,"lower")
                 upper_pieces = parse_pieces(state,"upper")
         
                 board = parse_board(state)
-                target_dist_dict = make_target_distances(lower_pieces,board)
+                #target_dist_dict = make_target_distances(lower_pieces,board)
 
                 routing = target_assign(upper_pieces,lower_pieces,target_dists)
                 targets = convert_targets(state, routing)  
-                """
 
 
     moves = potential_moves(state, targets, target_dists)
@@ -390,7 +393,6 @@ def make_target_distances(lower_pieces, curr_board_state):
     for min_list in lower_pieces:
         for piece in min_list:
             target_distance_dict[piece[0]] = dist_board_block(piece[0][0], piece[0][1], curr_board_state)
-
     return target_distance_dict
 
 
@@ -433,7 +435,6 @@ def target_assign_two(attackers_list, targets_list, target_distances):
         #If no targets, target the same location ???
         for attacker in attackers_list:
             targets[attacker[0]] = [attacker[0]]
-            print(targets)
         return targets
     
 
@@ -457,9 +458,16 @@ def target_assign_two(attackers_list, targets_list, target_distances):
         #For Each Attacker, find the "shortest" path length for each combination of targets
         for attacker in attackers_list:
             attacker_route_length[attacker[0]] = {}
+            attacker_route_length[attacker[0]][()] = [(),0]
             for bloop in target_lists:
-                a = make_attacker_route_length(attacker[0],bloop, target_distances)
-                attacker_route_length[attacker[0]][bloop] = a
+                perms = permutations(bloop)
+                best = make_attacker_route_length(attacker[0],bloop, target_distances)
+                for perm in perms:
+                    temp = make_attacker_route_length(attacker[0], perm, target_distances)
+                    if temp[1] < best[1]:
+                        best = temp
+
+                attacker_route_length[attacker[0]][bloop] = best
 
 
         #Make list of all attacker_route combinations
@@ -472,13 +480,13 @@ def target_assign_two(attackers_list, targets_list, target_distances):
             dist = sum_len(attackers_list[i][0],all_valid_combs[0][i],target_distances)
             if dist > shortest_longest_len:
                 shortest_longest_len = dist
-        print(shortest_longest_len)
 
         #Test The rest of the combinations to find the(a) actual shortest
         for comb in all_valid_combs:
             longest_len = 0
             for i in range(len(attackers_list)):
-                dist = sum_len(attackers_list[i][0],comb[i],target_distances)
+                dist = attacker_route_length[attackers_list[i][0]][comb[i]][1]
+                #dist = sum_len(attackers_list[i][0],comb[i],target_distances)
                 if dist > longest_len:
                     longest_len = dist
 
@@ -489,9 +497,11 @@ def target_assign_two(attackers_list, targets_list, target_distances):
                 #print(shortest_longest_len)
                 #print(shortest_comb)
         
+        #Using shortest comb, add to targets
         for i in range(len(attackers_list)):
             if len(shortest_comb[i]) > 0:
-                targets[attackers_list[i][0]] = list(shortest_comb[i])
+                targets[attackers_list[i][0]] = attacker_route_length[attackers_list[i][0]][shortest_comb[i]][0]
+                #targets[attackers_list[i][0]] = list(shortest_comb[i])
             else:
                 #Target closest
                 dists =[]
