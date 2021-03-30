@@ -39,9 +39,6 @@ def main():
     routing_new = convert_targets(data, routing)
 
     print(routing_new)
-    #print(routing_new[1][0])
-    #print_board(routing,compact=False)
-    #print_board(board, compact=True, ansi=True)
 
     board = parse_board(data)
     print_board(board)
@@ -50,4 +47,3 @@ def main():
     node_queue = [(0, data, -1, -1, 0)] #queues of nodes in form of (node_id, board_state, parent_node_id, score, depth). 
 
     find_solution(node_queue, calculated_nodes, routing_new, target_dist_dict)
-    #print_board(dist_board_block(4,0, board), ansi=True)

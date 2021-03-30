@@ -26,10 +26,7 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
     Main body of the program. Finds a path to a finished state given targetting dictionary.
     """
     unvisited_nodes.sort(key = compare_states)
-    #print([x[0] for x in unvisited_nodes])
-    #print(len(unvisited_nodes))
     node = unvisited_nodes.pop(0)
-    #print(node)
 
     curr_id = node[0]
     state = copy.deepcopy(node[1])
@@ -37,10 +34,6 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
     depth = node[4]
 
     visited_nodes[curr_id] = node
-
-    #print("state_id: %d\n"% curr_id)
-    #print(state)
-    #print_board(parse_board(visited_nodes[curr_id][1]))
 
     #checking for collisions
     new_lower = []
@@ -56,21 +49,17 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
 
     state["lower"] = new_lower
 
-    
+    #end state check
     if (finished(state)):
         print_all_nodes(curr_id, visited_nodes)
         return
 
-    #checking if reached attack
-    
+    #checking if reached target
     for piece in targets.keys():
         if ((state["upper"][piece][1],state["upper"][piece][2]) == targets[piece][0]):
             if (len(targets[piece]) > 1):
                 targets[piece] = targets[piece][1:]
             else:
-                #No retargeting BAD
-                #targets[piece] = []
-
                 #Retargetting
                 
                 lower_pieces = parse_pieces(state,"lower")
@@ -109,9 +98,6 @@ def print_all_nodes(curr_id, visited_nodes):
     else:
         parent_id = visited_nodes[curr_id][2]
         depth = print_all_nodes(parent_id, visited_nodes) #prints all moves leading to this position.
-        
-        print("state_id: %d\n"% curr_id)
-        print_board(parse_board(visited_nodes[curr_id][1]))
 
         print_moves(visited_nodes[parent_id][1], visited_nodes[curr_id][1], depth)
         return depth + 1
@@ -273,8 +259,6 @@ def convert_targets(state, targets):
     """
     converted = {}
     i = 0
-    #print(targets)
-    #print(state["upper"])
 
     for piece in state["upper"]:
         converted[i] = targets[(piece[1], piece[2])]
@@ -325,8 +309,7 @@ def calc_dist(r1, q1, r2, q2):
 
 def dist_board(r, q):
     """
-    DEBUGGING FUNCTION
-    Outputs a dictionary of the form (r, q): distance from target hex.
+    Outputs a dictionary of the form {(r, q): distance from target hex}
     """
     if (not valid_hex(r, q)):
         return -1
@@ -341,6 +324,9 @@ def dist_board(r, q):
     return dist_dict
 
 def recursive_dist_calc(r, q, curr_board, dist_dict, cost):
+    """
+    Recursively calculate distances. Calculates distances around #.
+    """
     if (not valid_hex(r, q) or not live_hex(r, q, curr_board[(r, q)], '')):
         return dist_dict
     
@@ -490,19 +476,13 @@ def target_assign_two(attackers_list, targets_list, target_distances):
                     longest_len = dist
 
             if longest_len < shortest_longest_len:
-                #print("SUCCESS")
                 shortest_longest_len = longest_len
                 shortest_comb = comb
-                #print(shortest_longest_len)
-                #print(shortest_comb)
         
         #Using shortest comb, add to targets
         for i in range(len(attackers_list)):
             if len(shortest_comb[i]) > 0:
-                #print(shortest_comb[i])
-                #print(attacker_route_length[attackers_list[i][0]][shortest_comb[i]])
                 targets[attackers_list[i][0]] = attacker_route_length[attackers_list[i][0]][shortest_comb[i]][0]
-                #targets[attackers_list[i][0]] = list(shortest_comb[i])
             else:
                 #Target closest
                 dists =[]
@@ -610,7 +590,6 @@ def sum_len(attacker_coords, attack_list, target_distances):
 
 def dist_board_block(r, q, curr_board_state):
     """
-    DEBUGGING FUNCTION
     Outputs a dictionary of the form (r, q): distance from target hex, taking into account blockers.
     """
     dist_dict = {}
