@@ -140,7 +140,8 @@ def potential_moves(state, targets, target_dists):
 
     #simplifying adj_positions into only positions >= curr and moves that won't kill the pieces.
     for key in adj_positions.keys():
-        new_list = []
+        better_moves = []
+        viable_moves = []
         old_loc = (pieces[key][1], pieces[key][2])
 
         dist_board = target_dists[targets[key][0]]
@@ -151,11 +152,17 @@ def potential_moves(state, targets, target_dists):
             if ((loc[0], loc[1]) in lower_pos):
                 live_flag = live_hex(loc[0], loc[1], lower_pos[(loc[0], loc[1])], state["upper"][key][0].upper())
             
+            if live_flag:
+                viable_moves.append(loc)
+
             new_dist = dist_board[loc]
             if (new_dist <= old_dist and live_flag):
-                new_list.append(loc)
+                better_moves.append(loc)
+
+        if (len(better_moves) == 0):
+            better_moves = viable_moves
         
-        adj_positions[key] = new_list
+        adj_positions[key] = better_moves
 
     #making list of all possible combinations of moves
     for loc in adj_positions[0]:
