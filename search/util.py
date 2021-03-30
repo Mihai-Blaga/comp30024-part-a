@@ -74,6 +74,8 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
             if (len(targets[piece]) > 1):
                 targets[piece] = targets[piece][1:]
             else:
+                targets[piece] = []
+                """
                 lower_pieces = parse_pieces(state,"lower")
                 upper_pieces = parse_pieces(state,"upper")
         
@@ -82,6 +84,7 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
 
                 routing = target_assign(upper_pieces,lower_pieces,target_dists)
                 targets = convert_targets(state, routing)  
+                """
     
 
 
@@ -433,69 +436,14 @@ def target_assign_two(attackers_list, targets_list, target_distances):
 
     if len(attackers_list) == 0:
         return targets
-
-    elif len(attackers_list) >= len(targets_list):
-        # LONGEST SHORTEST PATH
-        bloop = []
-        targets_left = [i for i in range(len(targets_list))]
-        attackers_left = [i for i in range(len(attackers_list))]
-        #Generate bloop
-        #bloop is a list of lists, where the bloop[i] is a list belonging to target i
-        #the values of the sub-list are the distances to target j. bloop[i][j]
-        for target in targets_left:
-            temp_list =[]
-            for attacker in attackers_left:
-                temp_list.append(target_distances[targets_list[target][0]][attackers_list[attacker][0]])
-            bloop.append(temp_list)
-
-
-        while len(targets_left) > 0:
-            #Set First target and first attacker as max_min
-            #Set min_target_row as the first row
-            #min_target_row is the row with the highest minimum value
-            max_min_target_dist = bloop[targets_left[0]][attackers_left[0]]
-            min_target_row = targets_left[0]
-
-            # Find the max_min value, and the row that it is in
-            for row in targets_left:
-                row_min = bloop[row][attackers_left[0]]
-                for attacker in attackers_left:
-                    if bloop[row][attacker] < row_min:
-                        row_min = bloop[row][attacker]
-                if row_min > max_min_target_dist:
-                    max_min_target_dist = row_min
-                    min_target_row = row
-
-            # Get the attacker num from the first position of max_min in bloop[row]
-            for attacker in attackers_left:
-                if bloop[min_target_row][attacker] == max_min_target_dist:
-                    attacker_num = attacker
-                    break
-            
-            # Add to output
-            targets[attackers_list[attacker_num][0]] = [targets_list[row][0]]
-
-            #Remove target and Attacker from remaining list
-            targets_left.remove(row)
-            attackers_left.remove(attacker_num)
-
-        # All targets should now have an attacker
-        
-        #Assign remaining attackers to closest target
-        # Optional, can be changed later
-        while len(attackers_left) > 0:
-            min_dist = bloop[0][attackers_left[0]]
-            min_target = 0
-            for i_target in range(len(targets_list)):
-                if bloop[i_target][attackers_left[0]] < min_dist:
-                    min_dist = bloop[i_target][attackers_left[0]]
-                    min_target = i_target
-
-            targets[attackers_list[attackers_left[0]][0]] = [targets_list[min_target][0]]
-            del attackers_left[0]
-        
+    
+    elif len(targets_list) == 0:
+        #If no targets, target the same location ???
+        for attacker in attackers_list:
+            targets[attacker[0]] = [attacker[0]]
+            print(targets)
         return targets
-
+    
 
     else:
         #More Targets than Attackers
@@ -541,16 +489,26 @@ def target_assign_two(attackers_list, targets_list, target_distances):
                 dist = sum_len(attackers_list[i][0],comb[i],target_distances)
                 if dist > longest_len:
                     longest_len = dist
-            
+
             if longest_len < shortest_longest_len:
-                print("SUCCESS")
+                #print("SUCCESS")
                 shortest_longest_len = longest_len
                 shortest_comb = comb
-                print(shortest_longest_len)
-                print(shortest_comb)
+                #print(shortest_longest_len)
+                #print(shortest_comb)
         
         for i in range(len(attackers_list)):
-            targets[attackers_list[i][0]] = list(shortest_comb[i])
+            if len(shortest_comb[i]) > 0:
+                targets[attackers_list[i][0]] = list(shortest_comb[i])
+            else:
+                #Target closest
+                dists =[]
+                for target in targets_list:
+                    dists.append(target_distances[target[0]][attackers_list[i][0]])
+                min_dist = min(dists)
+                c = dists.index(min_dist)
+                targets[attackers_list[i][0]] = [targets_list[c][0]]
+            
 
         return targets
 
