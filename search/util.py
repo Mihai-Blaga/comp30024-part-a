@@ -42,10 +42,12 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
         flag = True
         for u_piece in state["upper"]:
             if (l_piece[1] == u_piece[1] and l_piece[2] == u_piece[2]):
-                if live_hex(u_piece[1], u_piece[2], l_piece[0], u_piece[0]):
-                    flag = False
-        
-        if flag:
+                #upper piece survives on the same square as the lower piece
+                flag = not live_hex(u_piece[1], u_piece[2], l_piece[0], u_piece[0])
+                #lower piece survives on the same square as the upper piece
+                flag = live_hex(u_piece[1], u_piece[2], u_piece[0], l_piece[0])
+
+        if (flag):
             new_lower.append(l_piece)
 
     state["lower"] = new_lower
@@ -290,7 +292,7 @@ def valid_hex(r, q):
 
 def live_hex(r, q, target_piece, original_piece):
     """
-    returns true if the piece will survive moving to the specified hex
+    returns true if the target piece will survive moving to the specified hex
     """
     #maps pieces from rock, paper, scissors or blank to a ordinal number for maths.
     piece_map = {'r': 0, 'P': 1, 's': 2, 'R': 3, 'p': 4, 'S': 5, '': -2}
@@ -442,8 +444,6 @@ def target_assign_two(attackers_list, targets_list, target_distances, board_in):
     
 
     else:
-        #More Targets than Attackers
-
         #Dictionary Of Dictionaries of Route Lengths
         attacker_route_length = {}
 
