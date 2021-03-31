@@ -31,7 +31,7 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
 
     curr_id = node[0]
     state = copy.deepcopy(node[1])
-    curr_cost = node[3] - sum_dist_to_targets(state, targets, target_dists)
+    curr_cost = node[3] - sum_dist_to_targets(state, targets, target_dists) + len(state["upper"])/2
     depth = node[4]
 
     visited_nodes[curr_id] = node
@@ -42,8 +42,6 @@ def find_solution(unvisited_nodes, visited_nodes, targets, target_dists):
         flag = True
         for u_piece in state["upper"]:
             if (l_piece[1] == u_piece[1] and l_piece[2] == u_piece[2]):
-                #upper piece survives on the same square as the lower piece
-                flag = not live_hex(u_piece[1], u_piece[2], l_piece[0], u_piece[0])
                 #lower piece survives on the same square as the upper piece
                 flag = live_hex(u_piece[1], u_piece[2], u_piece[0], l_piece[0])
 
@@ -161,6 +159,7 @@ def potential_moves(state, targets, target_dists):
             if (new_dist <= old_dist and live_flag):
                 better_moves.append(loc)
 
+        #if no better moves can be found, simply evaluate the possible moves.
         if (len(better_moves) == 0):
             better_moves = viable_moves
         
@@ -249,7 +248,7 @@ def score(move, targets, prev_cost, target_dists):
     score = prev_cost
     sum = sum_dist_to_targets(move, targets, target_dists)
 
-    return score + sum
+    return score + sum/2
 
 def sum_dist_to_targets(state, targets, target_dists):
     """
