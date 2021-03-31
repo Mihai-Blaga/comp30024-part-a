@@ -98,10 +98,7 @@ def print_all_nodes(curr_id, visited_nodes):
     else:
         parent_id = visited_nodes[curr_id][2]
         depth = print_all_nodes(parent_id, visited_nodes) #prints all moves leading to this position.
-
-        print("state_id: %d\n"% curr_id)
-        print_board(parse_board(visited_nodes[curr_id][1]))
-
+        
         print_moves(visited_nodes[parent_id][1], visited_nodes[curr_id][1], depth)
         return depth + 1
 
